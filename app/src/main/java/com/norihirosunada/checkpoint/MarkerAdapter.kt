@@ -8,7 +8,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import java.util.*
 
-class MarkerAdapter(private val context: Context, private val markerList: ArrayList<RowData>) : RecyclerView.Adapter<MarkerAdapter.MarkerViewHolder>() {
+class MarkerAdapter(private val context: Context, private val markerList: MutableList<RowData>) : RecyclerView.Adapter<MarkerAdapter.MarkerViewHolder>() {
     // RecyclerViewの一要素となるXML要素の型を引数に指定する
     // この場合はdiary_list_item.xmlのTextView
     class MarkerViewHolder(view: View) : RecyclerView.ViewHolder(view){
@@ -28,4 +28,33 @@ class MarkerAdapter(private val context: Context, private val markerList: ArrayL
     }
 
     override fun getItemCount() = markerList.size
+
+    fun insertToRecyclerView(item: RowData){
+        if (markerList != null){
+            if (markerList.indexOf(item) == -1){
+                markerList.add(0,item)
+                notifyItemInserted(0)
+            }
+        }
+    }
+
+    fun updateToRecyclerView(item: RowData){
+        if (markerList != null){
+            val index = markerList.indexOf(item)
+            if (index != -1){
+                notifyItemChanged(index)
+            }
+        }
+    }
+
+    fun deleteToRecyclerView(item: RowData){
+        if (markerList != null){
+            val index = markerList.indexOf(item)
+            if (index != -1){
+                if (markerList.remove(item)){
+                    notifyItemRemoved(index)
+                }
+            }
+        }
+    }
 }

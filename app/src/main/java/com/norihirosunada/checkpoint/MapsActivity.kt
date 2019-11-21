@@ -2,6 +2,7 @@ package com.norihirosunada.checkpoint
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -29,25 +30,34 @@ import android.location.LocationManager
 import androidx.core.app.ComponentActivity.ExtraData
 import androidx.core.content.ContextCompat.getSystemService
 import android.icu.lang.UCharacter.GraphemeClusterBreak.T
+import android.inputmethodservice.Keyboard
+import kotlinx.android.synthetic.main.activity_maps.*
+
 //import sun.jvm.hotspot.utilities.IntArray
 
 const val REQUEST_CODE_LOCATION = 123
 const val LOCATION_PERMISSION = 42
 
-class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListener {
+class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListener,
+    GoogleMap.OnInfoWindowClickListener {
 
     private lateinit var mMap: GoogleMap
 
     private lateinit var mFusedLocationProviderClient: FusedLocationProviderClient
 
     protected var mLastLocation: Location? = null
+    protected var mLastMarker: Marker? = null
 
     private val DEFAULT_ZOOM: Float = 15.0F
 
     //チェックポイントにチェックできる最大距離（m）
-    private val maxCheckPointDistance: Float = 50.0F
+    private val maxCheckPointDistance: Float = 200.0F
 
     lateinit var markerList: ArrayList<RowData>
+    lateinit var markerMap: Map<String, RowData>
+
+    private val resultIntent = Intent()
+    var checkedMarkerList = ArrayList<RowData>()
 
     /**
      * Flag indicating whether a requested permission has been denied after returning in
@@ -67,6 +77,29 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListe
         mapFragment.getMapAsync(this)
 
         markerList = intent.getSerializableExtra("markers") as ArrayList<RowData>
+        markerMap = markerList.associateBy({it.title}, {it})
+
+        // FABを押すとマーカーの情報をcheckedMarkerListに追加する
+        // MainActivityにcheckedMarkerListを返す
+        checkFab.setOnClickListener {
+            val mLastMarker = this.mLastMarker
+            if (mLastMarker != null){
+                if (markerMap.containsKey(mLastMarker.title)){
+                    checkedMarkerList.add(markerMap.getValue(mLastMarker.title))
+                    Log.d("fab", "Clicked checkFab")
+                }
+            }
+            resultIntent.putExtra("checkedMarkers", checkedMarkerList)
+            setResult(Activity.RESULT_OK, resultIntent)
+            if(checkedMarkerList.isEmpty()){
+                Log.d("checkedMarkerList", "empty")
+            }else{
+                Log.d("checkedMarkerList", "not empty"+checkedMarkerList)
+            }
+            finish()
+        }
+
+        checkFab.hide()
     }
 
     /**
@@ -103,11 +136,16 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListe
             isCompassEnabled = true
             isMyLocationButtonEnabled = true
             isIndoorLevelPickerEnabled = true
-//            isMapToolbarEnabled = true
+            isMapToolbarEnabled = true
             isZoomGesturesEnabled = true
             isScrollGesturesEnabled = true
             isTiltGesturesEnabled = true
             isRotateGesturesEnabled = true
+        }
+
+        mMap.setOnMarkerClickListener(this@MapsActivity)
+        mMap.setOnMapClickListener {
+            checkFab.hide()
         }
 
         getLastLocatioin()
@@ -170,10 +208,28 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListe
         Location.distanceBetween(marker.position.latitude, marker.position.longitude,
             mLastLocation!!.latitude, mLastLocation!!.longitude, result)
         val distance = result[0]
+        // マーカーが現在地の近くにあればFABを表示する
         if (distance <= maxCheckPointDistance){
-
+            checkFab.show()
+            Log.d("marker", "marker near me")
+        }else{
+            checkFab.hide()
+            Log.d("marker", "marker not near me")
         }
+
+        mLastMarker = marker
 
         return false
     }
+
+    override fun onInfoWindowClick(p0: Marker?) {
+
+    }
+
+    override fun finish() {
+
+
+        super.finish()
+    }
+
 }
