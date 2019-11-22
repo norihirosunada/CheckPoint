@@ -14,7 +14,6 @@ import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 
 const val RESULT_MAPS = 1000
-const val RESULT_OK = 1001
 
 class MainActivity : AppCompatActivity() {
 
@@ -93,11 +92,12 @@ class MainActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         Log.d("result", "onActivityResult()")
         //MapsActivityからチェックされたマークのArrayList<RowData>を受け取る
-        if (requestCode == RESULT_MAPS && resultCode == Activity.RESULT_OK && intent != null){
-            Log.d("result", "Result Maps "+intent)
-            if (intent.hasExtra("checkedMarkers")) {
+        if (requestCode == RESULT_MAPS && resultCode == Activity.RESULT_OK && data != null){
+            Log.d("result", "Result Maps ")
+            val data = data
+            if (data.hasExtra("checkedMarkers")) {
                 Log.d("result", "has extra")
-                val res = intent.getSerializableExtra("checkedMarkers") as ArrayList<RowData>
+                val res = data.getSerializableExtra("checkedMarkers") as ArrayList<RowData>
                 res.forEach {
                     mAdapter.insertToRecyclerView(it)
                 }

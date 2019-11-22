@@ -94,9 +94,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListe
             if(checkedMarkerList.isEmpty()){
                 Log.d("checkedMarkerList", "empty")
             }else{
-                Log.d("checkedMarkerList", "not empty"+checkedMarkerList)
+                Log.d("checkedMarkerList", "not empty"+checkedMarkerList[0])
             }
-            finish()
+            checkFab.hide()
+//            finish()
         }
 
         checkFab.hide()
@@ -224,12 +225,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListe
 
     override fun onInfoWindowClick(p0: Marker?) {
 
-    }
-
-    override fun finish() {
-
-
-        super.finish()
     }
 
 }
