@@ -1,6 +1,7 @@
 package com.norihirosunada.checkpoint
 
 import android.Manifest
+import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
@@ -31,7 +32,12 @@ import androidx.core.app.ComponentActivity.ExtraData
 import androidx.core.content.ContextCompat.getSystemService
 import android.icu.lang.UCharacter.GraphemeClusterBreak.T
 import android.inputmethodservice.Keyboard
+import androidx.core.content.ContextCompat
+import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.tasks.Task
 import kotlinx.android.synthetic.main.activity_maps.*
+import java.util.*
+import kotlin.collections.ArrayList
 
 //import sun.jvm.hotspot.utilities.IntArray
 
@@ -64,6 +70,21 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListe
      * [.onRequestPermissionsResult].
      */
     private var showPermissionDeniedDialog = false
+
+    // 名古屋イルミネーションを巡るウォークラリー
+    val ilumiList = listOf(
+        CheckPoint("ノリタケの森", 35.179875, 136.881588),
+        CheckPoint("大名古屋ビルヂング", 35.171995, 136.884629),
+        CheckPoint("名古屋広小路通", 35.167871, 136.886403),
+        CheckPoint("名古屋駅前地区周辺", 35.169876, 136.884619),
+        CheckPoint("ジェイアール名古屋タカシマヤ", 35.171160, 136.882610),
+        CheckPoint("グローバルゲート", 35.162285, 136.883450),
+        CheckPoint("名古屋マリオットアソシアホテル", 35.170525, 136.883061),
+        CheckPoint("笹島交差点", 35.167573, 136.885562),
+        CheckPoint("KITTE名古屋", 35.173103, 136.882393),
+        CheckPoint("MIDLAND SQUARE", 35.170033, 136.885241),
+        CheckPoint("名古屋ルーセントタワー", 35.174935, 136.881131)
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -154,12 +175,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListe
         mMap.animateCamera(CameraUpdateFactory.zoomTo(DEFAULT_ZOOM))
 
         // チェックポイントのマーカーを設置する
-//        val osakaOffice = LatLng(34.697296, 135.492451)
-//        val osakaStation = LatLng(34.702460, 135.495926)
-//        mMap.addMarker(MarkerOptions().position(osakaOffice).title("大阪オフィス"))
-//        mMap.addMarker(MarkerOptions().position(osakaStation).title("大阪駅"))
-
-        markerList.forEach {
+//        markerList.forEach {
+//            mMap.addMarker(MarkerOptions().position(LatLng(it.lat, it.lng)).title(it.title))
+//        }
+        ilumiList.forEach {
             mMap.addMarker(MarkerOptions().position(LatLng(it.lat, it.lng)).title(it.title))
         }
 
@@ -205,6 +224,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListe
     }
 
     override fun onMarkerClick(marker: Marker): Boolean {
+        getLastLocatioin()
         var result = FloatArray(3)
         Location.distanceBetween(marker.position.latitude, marker.position.longitude,
             mLastLocation!!.latitude, mLastLocation!!.longitude, result)
@@ -226,5 +246,41 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListe
     override fun onInfoWindowClick(p0: Marker?) {
 
     }
+
+
+
+//    fun getCurrentPlace(){
+//        // Use fields to define the data types to return.
+//        val placeFields: List<Place.Field> = Collections.singletonList(Place.Field.NAME);
+//
+//        // Use the builder to create a FindCurrentPlaceRequest.
+//        val request: FindCurrentPlaceRequest =
+//                FindCurrentPlaceRequest.newInstance(placeFields);
+//
+//        // Call findCurrentPlace and handle the response (first check that the user has granted permission).
+//        if (ContextCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+//            val placeResponse: Task<FindCurrentPlaceResponse> = placesClient.findCurrentPlace(request);
+//            placeResponse.addOnCompleteListener(task -> {
+//                if (task.isSuccessful()){
+//                    val response: FindCurrentPlaceResponse = task.getResult();
+//                    for (val placeLikelihood: PlaceLikelihood in response.getPlaceLikelihoods()) {
+//                        Log.i(TAG, String.format("Place '%s' has likelihood: %f",
+//                                placeLikelihood.getPlace().getName(),
+//                                placeLikelihood.getLikelihood()));
+//                    }
+//                } else {
+//                    val exception: Exception = task.getException();
+//                    if (exception instanceof ApiException) {
+//                        ApiException apiException = (ApiException) exception;
+//                        Log.e(TAG, "Place not found: " + apiException.getStatusCode());
+//                    }
+//                }
+//            });
+//        } else {
+//            // A local method to request required permissions;
+//            // See https://developer.android.com/training/permissions/requesting
+//            getLocationPermission();
+//        }
+//    }
 
 }

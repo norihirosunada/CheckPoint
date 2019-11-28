@@ -3,4 +3,7 @@
     <color name="colorPrimary">#008577</color>
     <color name="colorPrimaryDark">#00574B</color>
     <color name="colorAccent">#D81B60</color>
+    <color name="footer_text">#000000</color>
+    <color name="footer_line">#222222</color>
+    <color name="circle">#ffbb00</color>
 </resources>

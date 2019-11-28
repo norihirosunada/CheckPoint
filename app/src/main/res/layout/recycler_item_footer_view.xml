@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent" android:layout_height="50dp">
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+        <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1">
+
+            <View
+                    android:id="@+id/footer_line"
+                    android:layout_width="2dp"
+                    android:layout_height="25dp"
+                    android:layout_gravity="center_horizontal"
+                    android:background="@color/footer_line" />
+
+            <View
+                    android:id="@+id/footer_circle"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/circle" />
+        </FrameLayout>
+
+        <TextView
+                android:id="@+id/recyclerItemFooterText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical|end"
+                android:layout_weight="9"
+                android:text="@string/footer_text"
+                android:textAlignment="textEnd"
+                android:textColor="@color/footer_text"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                app:autoSizeTextType="uniform" />
+    </LinearLayout>
+
+    <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_gravity="bottom"
+            android:background="@android:color/darker_gray"/>
+
+</FrameLayout>
