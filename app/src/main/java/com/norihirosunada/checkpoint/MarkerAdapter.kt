@@ -45,7 +45,6 @@ class MarkerAdapter(private val context: Context, private val markerList: Mutabl
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder{
 //        MarkerViewHolder =MarkerViewHolder(LayoutInflater.from(context).inflate(R.layout.list_item, parent, false))
-        Log.d("viewType", viewType.toString())
         return when(RecyclerType.fromInt(viewType)){
             RecyclerType.HEADER -> {
                 val view = RecyclerItemHeaderView(context)
@@ -99,8 +98,8 @@ class MarkerAdapter(private val context: Context, private val markerList: Mutabl
     fun insertToRecyclerView(item: RecyclerState){
         if (markerList != null){
             if (markerList.indexOf(item) == -1){
-                markerList.add(0,item)
-                notifyItemInserted(0)
+                markerList.add(1,item)
+                notifyItemInserted(1)
             }
         }
     }

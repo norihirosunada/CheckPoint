@@ -2,6 +2,7 @@ package com.norihirosunada.checkpoint
 
 import android.app.Activity
 import android.content.Intent
+import android.content.Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity;
@@ -12,6 +13,11 @@ import com.google.android.gms.maps.model.LatLng
 
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
+import java.text.SimpleDateFormat
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.*
+import kotlin.collections.ArrayList
 
 const val RESULT_MAPS = 1000
 
@@ -79,25 +85,24 @@ class MainActivity : AppCompatActivity() {
 
         val states = arrayListOf<RecyclerState>()
         // ヘッダ追加
-        val headerState = RecyclerState(RecyclerType.HEADER, "へっだ")
+        val headerState = RecyclerState(RecyclerType.HEADER, "へっだ", null, null)
         states.add(headerState)
 
         var secCounter = 0
-        for(i in 1..10){
-
+        for(i in 1..5){
             // 2 件目 と 3 件目　の上にセクションを追加
             if(i == 2 || i == 3){
                 secCounter++
-                val sectionState = RecyclerState(RecyclerType.SECTION, "セクション（区切り） No. $secCounter")
+                val sectionState = RecyclerState(RecyclerType.SECTION, "セクション（区切り） No. $secCounter", null, null)
                 states.add(sectionState)
             }
 
-            val state = RecyclerState(RecyclerType.BODY, "$i 件目")
+            val state = RecyclerState(RecyclerType.BODY, "$i 件目", CheckPoint("タイトル", 123.456, 789.123), Date())
             states.add(state)
         }
 
         // フッタ追加
-        val footerState = RecyclerState(RecyclerType.FOOTER, "ふった")
+        val footerState = RecyclerState(RecyclerType.FOOTER, null, null, null)
         states.add(footerState)
 
         mAdapter = MarkerAdapter(this, states)
@@ -106,7 +111,9 @@ class MainActivity : AppCompatActivity() {
         fab.setOnClickListener { view ->
             val intent = Intent(this, MapsActivity::class.java)
             intent.putExtra("markers", markersList)
+            intent.flags = FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY
             startActivityForResult(intent, RESULT_MAPS)
+//            mAdapter.insertToRecyclerView(RecyclerState(RecyclerType.BODY, null, CheckPoint("title", 12.34, 56.78), Date()))
         }
 
         bottomNavigationView.setOnNavigationItemSelectedListener { item ->
@@ -145,20 +152,26 @@ class MainActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        Log.d("result", "onActivityResult()")
-        //MapsActivityからチェックされたマークのArrayList<RowData>を受け取る
-        if (requestCode == RESULT_MAPS && resultCode == Activity.RESULT_OK && data != null){
-            Log.d("result", "Result Maps ")
-            val data = data
-            if (data.hasExtra("checkedMarkers")) {
-                Log.d("result", "has extra")
-                val res = data.getSerializableExtra("checkedMarkers") as ArrayList<RecyclerState>
-                res.forEach {
-                    mAdapter.insertToRecyclerView(it)
-                }
+        Log.d("result", "onActivityResult() "+ requestCode+", "+resultCode+", "+data)
+        //MapsActivityからチェックされたマークのArrayListを受け取る
+        if (resultCode == Activity.RESULT_OK){
+            Log.d("result", "Result OK")
+            if (requestCode == RESULT_MAPS  && data != null){
+                Log.d("result", "Result Maps ")
+                val data = data
+                if (data.hasExtra("checkedMarkers")) {
+                    Log.d("result", "has extra")
+                    val res = data.getSerializableExtra("checkedMarkers") as ArrayList<CheckPoint>
+                    res.forEach {
+                        mAdapter.insertToRecyclerView(RecyclerState(RecyclerType.BODY, null, it, Date()))
+                    }
 
+                }
             }
+        }else if (resultCode == Activity.RESULT_CANCELED){
+            Log.d("result", "Result Canceled")
         }
+
     }
 
 }

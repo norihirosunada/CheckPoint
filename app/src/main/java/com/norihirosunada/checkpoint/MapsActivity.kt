@@ -32,6 +32,7 @@ import androidx.core.app.ComponentActivity.ExtraData
 import androidx.core.content.ContextCompat.getSystemService
 import android.icu.lang.UCharacter.GraphemeClusterBreak.T
 import android.inputmethodservice.Keyboard
+import android.view.MenuItem
 import androidx.core.content.ContextCompat
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.tasks.Task
@@ -51,19 +52,19 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListe
 
     private lateinit var mFusedLocationProviderClient: FusedLocationProviderClient
 
-    protected var mLastLocation: Location? = null
-    protected var mLastMarker: Marker? = null
+    private var mLastLocation: Location? = null
+    private var mLastMarker: Marker? = null
 
     private val DEFAULT_ZOOM: Float = 15.0F
 
     //チェックポイントにチェックできる最大距離（m）
-    private val maxCheckPointDistance: Float = 200.0F
+    private val maxCheckPointDistance: Float = 1000000.0F
 
     lateinit var markerList: ArrayList<RowData>
-    lateinit var markerMap: Map<String, RowData>
+    lateinit var markerMap: Map<String, CheckPoint>
 
     private val resultIntent = Intent()
-    var checkedMarkerList = ArrayList<RowData>()
+    var checkedMarkerList = ArrayList<CheckPoint>()
 
     /**
      * Flag indicating whether a requested permission has been denied after returning in
@@ -72,7 +73,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListe
     private var showPermissionDeniedDialog = false
 
     // 名古屋イルミネーションを巡るウォークラリー
-    val ilumiList = listOf(
+    private val ilumiList = listOf(
         CheckPoint("ノリタケの森", 35.179875, 136.881588),
         CheckPoint("大名古屋ビルヂング", 35.171995, 136.884629),
         CheckPoint("名古屋広小路通", 35.167871, 136.886403),
@@ -98,7 +99,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListe
         mapFragment.getMapAsync(this)
 
         markerList = intent.getSerializableExtra("markers") as ArrayList<RowData>
-        markerMap = markerList.associateBy({it.title}, {it})
+//        markerMap = markerList.associateBy({it.title}, {it})
+        markerMap = ilumiList.associateBy({it.title}, {it})
 
         // FABを押すとマーカーの情報をcheckedMarkerListに追加する
         // MainActivityにcheckedMarkerListを返す
@@ -111,14 +113,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListe
                 }
             }
             resultIntent.putExtra("checkedMarkers", checkedMarkerList)
+//            resultIntent.flags = Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY
             setResult(Activity.RESULT_OK, resultIntent)
-            if(checkedMarkerList.isEmpty()){
-                Log.d("checkedMarkerList", "empty")
-            }else{
-                Log.d("checkedMarkerList", "not empty"+checkedMarkerList[0])
-            }
-            checkFab.hide()
+//            if(checkedMarkerList.isEmpty()){
+//                Log.d("checkedMarkerList", "empty")
+//            }else{
+//                Log.d("checkedMarkerList", "not empty"+checkedMarkerList[0])
+//            }
 //            finish()
+            checkFab.hide()
         }
 
         checkFab.hide()
@@ -170,7 +173,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListe
             checkFab.hide()
         }
 
-        getLastLocatioin()
+        getLastLocation()
         mMap.moveCamera(CameraUpdateFactory.newLatLng(LatLng(mLastLocation!!.latitude, mLastLocation!!.longitude)))
         mMap.animateCamera(CameraUpdateFactory.zoomTo(DEFAULT_ZOOM))
 
@@ -211,7 +214,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListe
 
     @SuppressLint("MissingPermission")
     @AfterPermissionGranted(LOCATION_PERMISSION)
-    fun getLastLocatioin(){
+    fun getLastLocation(){
         // Get LocationManager object from System Service LOCATION_SERVICE
         val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         // Create a criteria object to retrieve provider
@@ -224,8 +227,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListe
     }
 
     override fun onMarkerClick(marker: Marker): Boolean {
-        getLastLocatioin()
-        var result = FloatArray(3)
+        getLastLocation()
+        val result = FloatArray(3)
         Location.distanceBetween(marker.position.latitude, marker.position.longitude,
             mLastLocation!!.latitude, mLastLocation!!.longitude, result)
         val distance = result[0]
@@ -247,7 +250,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListe
 
     }
 
-
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        when(item?.itemId){
+            android.R.id.home -> finish()
+            else -> return super.onOptionsItemSelected(item)
+        }
+        return true
+    }
 
 //    fun getCurrentPlace(){
 //        // Use fields to define the data types to return.
