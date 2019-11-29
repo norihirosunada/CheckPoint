@@ -1,22 +1,15 @@
 package com.norihirosunada.checkpoint
 
 import android.Manifest
-import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.location.Location
-import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.provider.Settings
 import android.util.Log
-import android.view.View
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.core.app.ActivityCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.*
@@ -28,16 +21,8 @@ import pub.devrel.easypermissions.AfterPermissionGranted
 import pub.devrel.easypermissions.EasyPermissions
 import android.location.Criteria
 import android.location.LocationManager
-import androidx.core.app.ComponentActivity.ExtraData
-import androidx.core.content.ContextCompat.getSystemService
-import android.icu.lang.UCharacter.GraphemeClusterBreak.T
-import android.inputmethodservice.Keyboard
 import android.view.MenuItem
-import androidx.core.content.ContextCompat
-import com.google.android.gms.common.api.ApiException
-import com.google.android.gms.tasks.Task
 import kotlinx.android.synthetic.main.activity_maps.*
-import java.util.*
 import kotlin.collections.ArrayList
 
 //import sun.jvm.hotspot.utilities.IntArray
@@ -55,16 +40,16 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListe
     private var mLastLocation: Location? = null
     private var mLastMarker: Marker? = null
 
-    private val DEFAULT_ZOOM: Float = 15.0F
+    private val defaultZoom: Float = 15.0F
 
     //チェックポイントにチェックできる最大距離（m）
     private val maxCheckPointDistance: Float = 1000000.0F
 
-    lateinit var markerList: ArrayList<RowData>
-    lateinit var markerMap: Map<String, CheckPoint>
+//    lateinit var markerList: ArrayList<RowData>
+    private lateinit var markerMap: Map<String, CheckPoint>
 
     private val resultIntent = Intent()
-    var checkedMarkerList = ArrayList<CheckPoint>()
+    private var checkedMarkerList = ArrayList<CheckPoint>()
 
     /**
      * Flag indicating whether a requested permission has been denied after returning in
@@ -73,7 +58,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListe
     private var showPermissionDeniedDialog = false
 
     // 名古屋イルミネーションを巡るウォークラリー
-    private val ilumiList = listOf(
+    val ilumiList = listOf(
         CheckPoint("ノリタケの森", 35.179875, 136.881588),
         CheckPoint("大名古屋ビルヂング", 35.171995, 136.884629),
         CheckPoint("名古屋広小路通", 35.167871, 136.886403),
@@ -98,7 +83,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListe
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
-        markerList = intent.getSerializableExtra("markers") as ArrayList<RowData>
+//        markerList = intent.getSerializableExtra("markers") as ArrayList<RowData>
 //        markerMap = markerList.associateBy({it.title}, {it})
         markerMap = ilumiList.associateBy({it.title}, {it})
 
@@ -175,7 +160,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListe
 
         getLastLocation()
         mMap.moveCamera(CameraUpdateFactory.newLatLng(LatLng(mLastLocation!!.latitude, mLastLocation!!.longitude)))
-        mMap.animateCamera(CameraUpdateFactory.zoomTo(DEFAULT_ZOOM))
+        mMap.animateCamera(CameraUpdateFactory.zoomTo(defaultZoom))
 
         // チェックポイントのマーカーを設置する
 //        markerList.forEach {

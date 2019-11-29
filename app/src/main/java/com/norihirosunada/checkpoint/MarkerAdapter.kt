@@ -104,12 +104,14 @@ class MarkerAdapter(private val context: Context, private val markerList: Mutabl
         }
     }
 
-    fun updateToRecyclerView(item: RecyclerState){
+    fun updateToRecyclerView(index: Int, item: RecyclerState){
         if (markerList != null){
-            val index = markerList.indexOf(item)
-            if (index != -1){
+            markerList.removeAt(index)
+            markerList.add(index, item)
+//            val index = markerList.indexOf(item)
+//            if (index != -1){
                 notifyItemChanged(index)
-            }
+//            }
         }
     }
 

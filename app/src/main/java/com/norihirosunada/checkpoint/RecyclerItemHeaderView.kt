@@ -15,6 +15,7 @@ class RecyclerItemHeaderView(context: Context, attributeSet: AttributeSet? = nul
     }
 
     fun update(state: RecyclerState){
-        recyclerItemHeaderText.text = state.text
+        recyclerItemHeaderProgress.text = state.text+"/"+MapsActivity().ilumiList.size
+        recyclerItemHeaderPoint.text = "10pt"
     }
 }

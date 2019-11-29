@@ -10,7 +10,7 @@ class RecyclerState() {
         this.date = date
     }
 
-    // RcyclerAdapterにて追加するレコードのタイプ
+    // RecyclerAdapterにて追加するレコードのタイプ
     var type: RecyclerType = RecyclerType.BODY
     var text: String? = ""
     var checkPoint: CheckPoint? = null
