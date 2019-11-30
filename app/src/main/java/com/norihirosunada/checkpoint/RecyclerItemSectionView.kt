@@ -17,6 +17,6 @@ class RecyclerItemSectionView constructor(context: Context, attributeSet: Attrib
     }
 
     fun update(state: RecyclerState){
-        recyclerItemSectionText.text = state.text
+//        recyclerItemSectionText.text = state.text
     }
 }

@@ -16,6 +16,6 @@ class RecyclerItemFooterView(context: Context, attributeSet: AttributeSet? = nul
     }
 
     fun update(state: RecyclerState){
-        recyclerItemFooterText.text = state.text
+//        recyclerItemFooterText.text = state.text
     }
 }

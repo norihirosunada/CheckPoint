@@ -36,13 +36,13 @@
             app:backgroundTint="@color/colorPrimary"
             app:fabAlignmentMode="center" >
 
-        <com.google.android.material.bottomnavigation.BottomNavigationView
-                android:id="@+id/bottomNavigationView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                app:itemIconTint="#ffffff"
-                app:itemTextColor="#ffffff"
-                app:menu="@menu/bnv_menu" />
+<!--        <com.google.android.material.bottomnavigation.BottomNavigationView-->
+<!--                android:id="@+id/bottomNavigationView"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="match_parent"-->
+<!--                app:itemIconTint="#ffffff"-->
+<!--                app:itemTextColor="#ffffff"-->
+<!--                app:menu="@menu/bnv_menu" />-->
 
     </com.google.android.material.bottomappbar.BottomAppBar>
 

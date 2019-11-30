@@ -13,15 +13,13 @@ import androidx.appcompat.app.AlertDialog
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.*
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.Marker
-import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener
 import pub.devrel.easypermissions.AfterPermissionGranted
 import pub.devrel.easypermissions.EasyPermissions
 import android.location.Criteria
 import android.location.LocationManager
 import android.view.MenuItem
+import com.google.android.gms.maps.model.*
 import kotlinx.android.synthetic.main.activity_maps.*
 import kotlin.collections.ArrayList
 
@@ -49,7 +47,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListe
     private lateinit var markerMap: Map<String, CheckPoint>
 
     private val resultIntent = Intent()
-    private var checkedMarkerList = ArrayList<CheckPoint>()
+    private var checkedResultList = ArrayList<CheckPoint>()
+
+    private var checkedArray = ArrayList<String>()
 
     /**
      * Flag indicating whether a requested permission has been denied after returning in
@@ -85,6 +85,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListe
 
 //        markerList = intent.getSerializableExtra("markers") as ArrayList<RowData>
 //        markerMap = markerList.associateBy({it.title}, {it})
+        checkedArray = intent.getStringArrayListExtra("checked markers")
+
         markerMap = ilumiList.associateBy({it.title}, {it})
 
         // FABを押すとマーカーの情報をcheckedMarkerListに追加する
@@ -92,21 +94,18 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListe
         checkFab.setOnClickListener {
             val mLastMarker = this.mLastMarker
             if (mLastMarker != null){
-                if (markerMap.containsKey(mLastMarker.title)){
-                    checkedMarkerList.add(markerMap.getValue(mLastMarker.title))
-                    Log.d("fab", "Clicked checkFab")
-                }
-            }
-            resultIntent.putExtra("checkedMarkers", checkedMarkerList)
+                checkedResultList.add(markerMap.getValue(mLastMarker.title))
+                Log.d("fab", "Clicked checkFab")
+
+                resultIntent.putExtra("checkedMarkers", checkedResultList)
 //            resultIntent.flags = Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY
-            setResult(Activity.RESULT_OK, resultIntent)
-//            if(checkedMarkerList.isEmpty()){
-//                Log.d("checkedMarkerList", "empty")
-//            }else{
-//                Log.d("checkedMarkerList", "not empty"+checkedMarkerList[0])
-//            }
-//            finish()
-            checkFab.hide()
+                setResult(Activity.RESULT_OK, resultIntent)
+                val icon = BitmapDescriptorFactory.fromResource(R.drawable.checked_markermdpi)
+                mLastMarker.setIcon(icon)
+                checkedArray.add(mLastMarker.title)
+
+                checkFab.hide()
+            }
         }
 
         checkFab.hide()
@@ -167,7 +166,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListe
 //            mMap.addMarker(MarkerOptions().position(LatLng(it.lat, it.lng)).title(it.title))
 //        }
         ilumiList.forEach {
-            mMap.addMarker(MarkerOptions().position(LatLng(it.lat, it.lng)).title(it.title))
+            if (checkedArray.contains(it.title)){
+                val icon = BitmapDescriptorFactory.fromResource(R.drawable.checked_markermdpi)
+                mMap.addMarker(MarkerOptions().position(LatLng(it.lat, it.lng)).title(it.title).icon(icon))
+            }else {
+                mMap.addMarker(MarkerOptions().position(LatLng(it.lat, it.lng)).title(it.title))
+            }
         }
 
     }
@@ -213,17 +217,23 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListe
 
     override fun onMarkerClick(marker: Marker): Boolean {
         getLastLocation()
-        val result = FloatArray(3)
-        Location.distanceBetween(marker.position.latitude, marker.position.longitude,
-            mLastLocation!!.latitude, mLastLocation!!.longitude, result)
-        val distance = result[0]
-        // マーカーが現在地の近くにあればFABを表示する
-        if (distance <= maxCheckPointDistance){
-            checkFab.show()
-            Log.d("marker", "marker near me")
+        if (!checkedArray.contains(marker.title)) {
+            val result = FloatArray(3)
+            Location.distanceBetween(
+                marker.position.latitude, marker.position.longitude,
+                mLastLocation!!.latitude, mLastLocation!!.longitude, result
+            )
+            val distance = result[0]
+            // マーカーが現在地の近くにあればFABを表示する
+            if (distance <= maxCheckPointDistance) {
+                checkFab.show()
+                Log.d("marker", "marker near me")
+            } else {
+                checkFab.hide()
+                Log.d("marker", "marker not near me")
+            }
         }else{
             checkFab.hide()
-            Log.d("marker", "marker not near me")
         }
 
         mLastMarker = marker

@@ -11,6 +11,8 @@ import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
@@ -48,22 +50,10 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var mAdapter: MarkerAdapter
 
-//    companion object {
-//        const val KEY_PREFERENCES: String = "preferences"
-//        const val KEY_SAVE_TEXT: String = "save_text"
-//    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
-
-//        val sharedPreferences: SharedPreferences = getSharedPreferences(KEY_PREFERENCES, Context.MODE_PRIVATE)
-//        val editor: SharedPreferences.Editor = sharedPreferences.edit()
-//        savedTextView.text = sharedPreferences.getString(KEY_SAVE_TEXT, "No Data")
-//        editor.putString(KEY_SAVE_TEXT, saveText)
-//        editor.apply()
-
 
 //        markerList.add(RowData("OsakaOffice", 34.697296, 135.492451, false))
 //        markerList.add(RowData("OsakaStation", 34.702460, 135.495926, false))
@@ -72,34 +62,36 @@ class MainActivity : AppCompatActivity() {
         main_activity_container.setHasFixedSize(true)
         main_activity_container.layoutManager = LinearLayoutManager(this)
 
+        // sharedpreference　データ消去
+//        val dataStore: SharedPreferences = getSharedPreferences("DataStore", Context.MODE_PRIVATE)
+//        dataStore.edit().clear().apply()
+
         //チェックイン履歴読み込み
         historyList = loadArrayList("history")
 
         val states = arrayListOf<RecyclerState>()
 
         // ヘッダ追加
-        val headerState = RecyclerState(RecyclerType.HEADER, "0", null, null)
+        val headerState = RecyclerState(RecyclerType.HEADER, historyList.size)
         states.add(headerState)
-
         // RecycleView動作確認用
-        var secCounter = 0
-        for(i in 1..5){
-            // 2 件目 と 3 件目　の上にセクションを追加
-            if(i == 2 || i == 3){
-                secCounter++
-                val sectionState = RecyclerState(RecyclerType.SECTION, "セクション（区切り） No. $secCounter", null, null)
-                states.add(sectionState)
-            }
-            val state = RecyclerState(RecyclerType.BODY, "$i 件目", CheckPoint("タイトル", 123.456, 789.123), Date())
-            states.add(state)
-        }
-        // 本番用
-//        for (i in 0 until historyList.size){
-//            states.add(RecyclerState(RecyclerType.BODY, null, historyList[i].checkPoint, historyList[i].date))
+//        var secCounter = 0
+//        for(i in 1..5){
+//            // 2 件目 と 3 件目　の上にセクションを追加
+//            if(i == 2 || i == 3){
+//                secCounter++
+//                val sectionState = RecyclerState(RecyclerType.SECTION, "セクション（区切り） No. $secCounter")
+//                states.add(sectionState)
+//            }
+//            val state = RecyclerState(RecyclerType.BODY, "$i 件目", CheckPoint("タイトル", 123.456, 789.123), Date())
+//            states.add(state)
 //        }
-
+        // 本番用
+        for (i in 0 until historyList.size){
+            states.add(RecyclerState(RecyclerType.BODY, historyList[i].checkPoint, historyList[i].date))
+        }
         // フッタ追加
-        val footerState = RecyclerState(RecyclerType.FOOTER, null, null, null)
+        val footerState = RecyclerState(RecyclerType.FOOTER)
         states.add(footerState)
 
         mAdapter = MarkerAdapter(this, states)
@@ -107,29 +99,31 @@ class MainActivity : AppCompatActivity() {
 
         fab.setOnClickListener {
             val intent = Intent(this, MapsActivity::class.java)
-//            intent.putExtra("markers", markersList)
+            val array: ArrayList<String> = arrayListOf()
+            historyList.forEachIndexed { index, it ->
+                array.add(it.checkPoint.title)
+            }
+            intent.putExtra("checked markers", array)
             intent.flags = FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY
             startActivityForResult(intent, RESULT_MAPS)
-//            mAdapter.insertToRecyclerView(RecyclerState(RecyclerType.BODY, null, CheckPoint("title", 12.34, 56.78), Date()))
-//            mAdapter.updateToRecyclerView(0, RecyclerState(RecyclerType.HEADER, "1", null, null))
         }
 
-        bottomNavigationView.setOnNavigationItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.item1 -> {
-//                    setFragment()
-                    return@setOnNavigationItemSelectedListener true
-                }
-                R.id.item2 -> {
-//                    setFragment()
-                    return@setOnNavigationItemSelectedListener true
-                }
-                else -> {
-//                    setFragment()
-                    return@setOnNavigationItemSelectedListener true
-                }
-            }
-        }
+//        bottomNavigationView.setOnNavigationItemSelectedListener { item ->
+//            when (item.itemId) {
+//                R.id.item1 -> {
+////                    setFragment()
+//                    return@setOnNavigationItemSelectedListener true
+//                }
+//                R.id.item2 -> {
+////                    setFragment()
+//                    return@setOnNavigationItemSelectedListener true
+//                }
+//                else -> {
+////                    setFragment()
+//                    return@setOnNavigationItemSelectedListener true
+//                }
+//            }
+//        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -161,9 +155,11 @@ class MainActivity : AppCompatActivity() {
                             val res = data.getSerializableExtra("checkedMarkers") as ArrayList<CheckPoint>
                             res.forEach {
                                 val date = Date()
-                                mAdapter.insertToRecyclerView(RecyclerState(RecyclerType.BODY, null, it, date))
+                                mAdapter.insertToRecyclerView(RecyclerState(RecyclerType.BODY, it, date))
                                 historyList.add(0, CheckPointRecord(it, date))
                             }
+                            //ヘッダー更新
+                            mAdapter.updateToRecyclerView(0, RecyclerState(RecyclerType.HEADER, historyList.size))
                             // チェックイン履歴をSharedPreferenceに保存
                             saveArrayList("history", historyList)
                         }
@@ -177,20 +173,36 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun saveArrayList(key: String, arrayList: ArrayList<CheckPointRecord>){
-        val dataStore: SharedPreferences = getSharedPreferences("DataStore", Context.MODE_PRIVATE)
-        val editor = dataStore.edit()
-        val jsonArray = JSONArray(arrayList)
-        editor.putString(key, jsonArray.toString())
-        editor.apply()
+        if (arrayList.isNotEmpty()) {
+            val dataStore: SharedPreferences =
+                getSharedPreferences("DataStore", Context.MODE_PRIVATE)
+            val editor = dataStore.edit()
+            val gson = Gson()
+//        val jsonArray = JSONArray(arrayList)
+            arrayList.forEachIndexed { index, checkPointRecord ->
+                editor.putString(key + index, gson.toJson(checkPointRecord))
+            }
+            editor.putInt(key + "size", arrayList.size)
+            editor.apply()
+        }
     }
 
     fun loadArrayList(key: String): ArrayList<CheckPointRecord>{
         val dataStore: SharedPreferences = getSharedPreferences("DataStore", Context.MODE_PRIVATE)
-        val jsonArray = JSONArray(dataStore.getString(key, "[]"))
-        val arrayList: ArrayList<CheckPointRecord> = ArrayList()
-        for (i in 0 until jsonArray.length()){
-            arrayList.add(jsonArray.get(i) as CheckPointRecord)
+//        val jsonArray = JSONArray(dataStore.getString(key, "[]"))
+        val gson = Gson()
+        val arrayList = ArrayList<CheckPointRecord>()
+//        val listType = TypeToken<CheckPointRecord>()
+        val listSize = dataStore.getInt(key+"size", 0)
+        Log.d("loadarray", listSize.toString())
+        for (i in 0..(listSize-1)){
+            arrayList.add(gson.fromJson(dataStore.getString(key+i, ""), CheckPointRecord::class.java))
         }
+//        if (jsonArray.length() >= 1) {
+//            for (i in 0 until jsonArray.length()) {
+//                arrayList.add(jsonArray.get(i) as CheckPointRecord)
+//            }
+//        }
         return arrayList
     }
 
