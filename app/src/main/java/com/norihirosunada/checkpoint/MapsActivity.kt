@@ -1,6 +1,7 @@
 package com.norihirosunada.checkpoint
 
 import android.Manifest
+import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
@@ -26,7 +27,7 @@ import kotlin.collections.ArrayList
 //import sun.jvm.hotspot.utilities.IntArray
 
 const val REQUEST_CODE_LOCATION = 123
-const val LOCATION_PERMISSION = 42
+const val LOCATION_PERMISSION = 1
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListener,
     GoogleMap.OnInfoWindowClickListener {
@@ -41,7 +42,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListe
     private val defaultZoom: Float = 15.0F
 
     //チェックポイントにチェックできる最大距離（m）
-    private val maxCheckPointDistance: Float = 1000000.0F
+    private val maxCheckPointDistance: Float = 100.0F
 
 //    lateinit var markerList: ArrayList<RowData>
     private lateinit var markerMap: Map<String, CheckPoint>
@@ -158,8 +159,18 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListe
         }
 
         getLastLocation()
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(LatLng(mLastLocation!!.latitude, mLastLocation!!.longitude)))
+        if (hasLocationPermission()) {
+            mMap.moveCamera(
+                CameraUpdateFactory.newLatLng(
+                    LatLng(
+                        mLastLocation!!.latitude,
+                        mLastLocation!!.longitude
+                    )
+                )
+            )
+        }
         mMap.animateCamera(CameraUpdateFactory.zoomTo(defaultZoom))
+
 
         // チェックポイントのマーカーを設置する
 //        markerList.forEach {
@@ -204,14 +215,19 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListe
     @SuppressLint("MissingPermission")
     @AfterPermissionGranted(LOCATION_PERMISSION)
     fun getLastLocation(){
-        // Get LocationManager object from System Service LOCATION_SERVICE
-        val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        // Create a criteria object to retrieve provider
-        val criteria = Criteria()
-        // Get the name of the best provider
-        val provider = locationManager.getBestProvider(criteria, true)
-        // Get Current Location
-        mLastLocation = locationManager.getLastKnownLocation(provider)
+        if (hasLocationPermission()){
+            // Get LocationManager object from System Service LOCATION_SERVICE
+            val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+            // Create a criteria object to retrieve provider
+            val criteria = Criteria()
+            // Get the name of the best provider
+            val provider = locationManager.getBestProvider(criteria, true)
+            // Get Current Location
+            mLastLocation = locationManager.getLastKnownLocation(provider)
+        }else{
+            EasyPermissions.requestPermissions(this, "", LOCATION_PERMISSION, ACCESS_FINE_LOCATION)
+        }
+
 
     }
 
