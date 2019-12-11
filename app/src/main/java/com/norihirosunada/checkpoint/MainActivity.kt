@@ -24,25 +24,6 @@ const val RESULT_MAPS = 1000
 
 class MainActivity : AppCompatActivity() {
 
-//    var markerList = mapOf(<RowData>)
-//    val places = mapOf(
-//        "OsakaOffice" to LatLng(34.697296, 135.492451),
-//        "OsakaStation" to LatLng(34.702460, 135.495926),
-//        "MyHouse" to LatLng(35.109348, 137.116275)
-//    )
-
-//    val markers = mapOf<String, RowData>(
-//        "OsakaOffice" to RowData("OsakaOffice", 34.697296, 135.492451, false),
-//        "OsakaStation" to RowData("OsakaStation", 34.702460, 135.495926, false),
-//        "MyHouse" to RowData("MyHouse", 35.109348, 137.116275, false)
-//    )
-
-//    val markersList = arrayListOf(
-//        RowData("OsakaOffice", 34.697296, 135.492451, false),
-//        RowData("OsakaStation", 34.702460, 135.495926, false),
-//        RowData("MyHouse", 35.109348, 137.116275, false)
-//    )
-
     // チェックイン履歴用
     //　チェックイン毎に追加
     var historyList = arrayListOf<CheckPointRecord>()
@@ -54,10 +35,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
-
-//        markerList.add(RowData("OsakaOffice", 34.697296, 135.492451, false))
-//        markerList.add(RowData("OsakaStation", 34.702460, 135.495926, false))
-//        markerList.add(RowData("MyHouse", 35.109348, 137.116275, false))
 
         main_activity_container.setHasFixedSize(true)
         main_activity_container.layoutManager = LinearLayoutManager(this)

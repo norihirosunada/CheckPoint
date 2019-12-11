@@ -58,6 +58,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListe
      */
     private var showPermissionDeniedDialog = false
 
+    private var mLastTappedMarker: Marker? = null
+
     // 名古屋イルミネーションを巡るウォークラリー
     val ilumiList = listOf(
         CheckPoint("ノリタケの森", 35.179875, 136.881588),
@@ -84,12 +86,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListe
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
-//        markerList = intent.getSerializableExtra("markers") as ArrayList<RowData>
-//        markerMap = markerList.associateBy({it.title}, {it})
+        // MainActivityから遷移時の処理
+        // intentからチェックイン済みのマーカー情報取得　Map型に整形
         checkedArray = intent.getStringArrayListExtra("checked markers")
-
         markerMap = ilumiList.associateBy({it.title}, {it})
-
         // FABを押すとマーカーの情報をcheckedMarkerListに追加する
         // MainActivityにcheckedMarkerListを返す
         checkFab.setOnClickListener {
@@ -108,8 +108,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListe
                 checkFab.hide()
             }
         }
-
         checkFab.hide()
+
+        // EventDetailActivityから遷移時の処理
+        // 地図上タップでマーカー設置
+
+
     }
 
     /**
@@ -171,11 +175,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListe
         }
         mMap.animateCamera(CameraUpdateFactory.zoomTo(defaultZoom))
 
-
         // チェックポイントのマーカーを設置する
-//        markerList.forEach {
-//            mMap.addMarker(MarkerOptions().position(LatLng(it.lat, it.lng)).title(it.title))
-//        }
         ilumiList.forEach {
             if (checkedArray.contains(it.title)){
                 val icon = BitmapDescriptorFactory.fromResource(R.drawable.checked_markermdpi)
@@ -185,6 +185,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListe
             }
         }
 
+        mMap.setOnMapClickListener { point ->
+            val lastTappedMarker = mLastTappedMarker
+            if (lastTappedMarker != null){
+                lastTappedMarker.remove()
+            }
+            mLastTappedMarker = mMap.addMarker(MarkerOptions().position(point))
+
+        }
     }
 
     /** Override the onRequestPermissionResult to use EasyPermissions */
@@ -227,7 +235,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListe
         }else{
             EasyPermissions.requestPermissions(this, "", LOCATION_PERMISSION, ACCESS_FINE_LOCATION)
         }
-
 
     }
 
