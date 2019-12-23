@@ -66,7 +66,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListe
     private var showPermissionDeniedDialog = false
 
     // 名古屋イルミネーションを巡るウォークラリー
-    private val ilumiList = listOf(
+    val ilumiList = listOf(
         CheckPoint("ノリタケの森", "",35.179875, 136.881588),
         CheckPoint("大名古屋ビルヂング", "", 35.171995, 136.884629),
         CheckPoint("名古屋広小路通", "", 35.167871, 136.886403),
@@ -226,22 +226,22 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListe
         rallyArray.filterNotNull().forEach {
             val docRef = db.collection("rallies").document(it)
             docRef.collection("checkpoints").get()
-                .addOnSuccessListener { documents ->
-                    for (document in documents) {
-                        Log.d("Firestore", "${document.id} => ${document.data}")
-                        val title = document.get("title").toString()
+                .addOnSuccessListener { collection ->
+                    for (checkpoint in collection) {
+                        Log.d("Firestore", "${checkpoint.id} => ${checkpoint.data}")
+                        val title = checkpoint.get("title").toString()
                         if (checkedArray.contains(title)){
                             val icon = BitmapDescriptorFactory.fromResource(R.drawable.checked_markermdpi)
                             mMap.addMarker(MarkerOptions()
-                                .position(LatLng(document.get("lat") as Double, document.get("lng") as Double))
+                                .position(LatLng(checkpoint.get("lat") as Double, checkpoint.get("lng") as Double))
                                 .title(title)
-                                .snippet(document.get("snippet").toString())
+                                .snippet(checkpoint.get("snippet").toString())
                                 .icon(icon))
                         }else {
                             mMap.addMarker(MarkerOptions()
-                                .position(LatLng(document.get("lat") as Double, document.get("lng") as Double))
+                                .position(LatLng(checkpoint.get("lat") as Double, checkpoint.get("lng") as Double))
                                 .title(title)
-                                .snippet(document.get("snippet").toString()))
+                                .snippet(checkpoint.get("snippet").toString()))
                         }
                     }
                 }
@@ -249,7 +249,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, OnMarkerClickListe
                     Log.d("Firestore", "get failed with ", exception)
                 }
         }
-
 
     }
 

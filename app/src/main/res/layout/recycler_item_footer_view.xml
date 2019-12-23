@@ -35,7 +35,7 @@
                 android:layout_gravity="center_vertical|end"
                 android:layout_weight="9"
                 android:text="@string/footer_text"
-                android:textAlignment="textEnd"
+                android:textAlignment="center"
                 android:textColor="@color/footer_text"
                 android:textSize="20sp"
                 android:textStyle="bold"

@@ -46,7 +46,8 @@
                 android:layout_gravity="bottom"
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="8dp"
-                android:background="@android:color/darker_gray" />
+                android:background="@android:color/darker_gray"
+                android:visibility="gone" />
 
         <TextView
                 android:id="@+id/recyclerItemHeaderPoint"
@@ -58,7 +59,8 @@
                 android:textAlignment="center"
                 android:textColor="@android:color/holo_blue_dark"
                 android:textSize="48sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:visibility="gone" />
     </LinearLayout>
 
     <View

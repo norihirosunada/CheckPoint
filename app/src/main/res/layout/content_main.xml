@@ -19,7 +19,7 @@
                 android:id="@+id/textView3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="TextView" />
+                android:text="@string/label_spinner" />
 
         <Spinner
                 android:id="@+id/spinner"
@@ -28,7 +28,7 @@
 
         <View
                 android:id="@+id/view2"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="0dp"
                 android:layout_weight="1" />
 
@@ -36,7 +36,8 @@
                 android:id="@+id/addRallyButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="ラリーに参加" />
+                android:text="@string/label_addRallyButton" />
+
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView

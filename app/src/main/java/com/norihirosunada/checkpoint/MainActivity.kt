@@ -13,12 +13,17 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.EditText
 import android.widget.Spinner
+import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.Gson
 
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
+import org.json.JSONArray
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -34,9 +39,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var mAdapter: MarkerAdapter
 
     // 参加しているラリーイベントのリスト
-    var rallyArrayList = arrayListOf<String>("I0UL0lvLUFwub9uKtKqc")
+    var rallyArrayList = arrayListOf<String>()
+    var totalCheckPointSize = 0
 
-    var spinnerItems = arrayListOf<String>("01")
+    var spinnerItems = arrayListOf<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,10 +81,24 @@ class MainActivity : AppCompatActivity() {
 
         // ダイアログ表示 ラリーイベントID入力
         addRallyButton.setOnClickListener{
-            rallyArrayList.add("oUVbtjhghPAuRTu2gfRf")
-            spinnerItems.add("02")
-
-
+            val editText = EditText(this)
+            editText.hint = getString(R.string.label_addRallyDialog_Hint)
+            //アラートダイアログインスタンスを生成-
+            val builder = AlertDialog.Builder(this)
+            //タイトルとメッセージを作成
+            builder.setTitle(getString(R.string.label_addRallyDialog_Title))
+//            builder.setMessage("イベントIDを入力してください")
+            //テキスト入力欄を挿入
+            builder.setView(editText)
+            //決定ボタンを設置
+            builder.setPositiveButton(getString(R.string.label_addRallyDialog_PositiveButton)){ dialog, which ->
+                Log.d("AlertDialog", "text => ${editText.text}")
+                // ラリー追加
+                addRally(editText.text.toString())
+            }
+            builder.setNegativeButton(getString(R.string.label_addRallyDialog_NegativeButton)){ _, _ ->  }
+            //ダイアログ表示
+            builder.show()
         }
 
         fab.setOnClickListener {
@@ -110,6 +130,28 @@ class MainActivity : AppCompatActivity() {
 //                }
 //            }
 //        }
+
+        // 参加済みのラリー
+        rallyArrayList = loadRallyArrayList()
+        rallyArrayList.forEach {id ->
+            Log.d("Load", "rally: $id")
+            val db = FirebaseFirestore.getInstance()
+            val docRef = db.collection("rallies").document(id)
+            docRef.get().addOnSuccessListener { document ->
+                val rallyTitle = document.get("title") as String
+                val rallyDescription = document.get("description") as String
+                val rallyAuthor = document.get("author") as String
+                spinnerItems.add(rallyTitle)
+
+            }.addOnFailureListener { exception ->
+                Log.d("Firestore", "get failed with ", exception)
+            }
+            docRef.collection("checkpoints").get().addOnSuccessListener { querySnapshot ->
+                totalCheckPointSize += querySnapshot.size()
+                Log.d("CPSize", "CPSize => $totalCheckPointSize")
+                mAdapter.updateToRecyclerView(0, RecyclerState(RecyclerType.HEADER, historyList.size, totalCheckPointSize))
+            }
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -123,7 +165,7 @@ class MainActivity : AppCompatActivity() {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         when (item.itemId) {
-            R.id.action_settings -> {
+            R.id.action_about -> {
 
                 return true
             }
@@ -148,7 +190,7 @@ class MainActivity : AppCompatActivity() {
                                 historyList.add(0, CheckPointRecord(it, date))
                             }
                             //ヘッダー更新
-                            mAdapter.updateToRecyclerView(0, RecyclerState(RecyclerType.HEADER, historyList.size))
+                            mAdapter.updateToRecyclerView(0, RecyclerState(RecyclerType.HEADER, historyList.size, totalCheckPointSize))
                             // チェックイン履歴をSharedPreferenceに保存
                             saveArrayList("history", historyList)
                         }
@@ -161,13 +203,12 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    fun saveArrayList(key: String, arrayList: ArrayList<CheckPointRecord>){
+    private fun saveArrayList(key: String, arrayList: ArrayList<CheckPointRecord>){
         if (arrayList.isNotEmpty()) {
             val dataStore: SharedPreferences =
                 getSharedPreferences("DataStore", Context.MODE_PRIVATE)
             val editor = dataStore.edit()
             val gson = Gson()
-//        val jsonArray = JSONArray(arrayList)
             arrayList.forEachIndexed { index, checkPointRecord ->
                 editor.putString(key + index, gson.toJson(checkPointRecord))
             }
@@ -176,22 +217,35 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun loadArrayList(key: String): ArrayList<CheckPointRecord>{
+    private fun loadArrayList(key: String): ArrayList<CheckPointRecord>{
         val dataStore: SharedPreferences = getSharedPreferences("DataStore", Context.MODE_PRIVATE)
-//        val jsonArray = JSONArray(dataStore.getString(key, "[]"))
         val gson = Gson()
         val arrayList = ArrayList<CheckPointRecord>()
-//        val listType = TypeToken<CheckPointRecord>()
         val listSize = dataStore.getInt(key+"size", 0)
         Log.d("loadarray", listSize.toString())
         for (i in 0 until listSize){
             arrayList.add(gson.fromJson(dataStore.getString(key+i, ""), CheckPointRecord::class.java))
         }
-//        if (jsonArray.length() >= 1) {
-//            for (i in 0 until jsonArray.length()) {
-//                arrayList.add(jsonArray.get(i) as CheckPointRecord)
-//            }
-//        }
+
+        return arrayList
+    }
+
+    private fun saveRallyArrayList(arrayList: ArrayList<String>){
+        if (arrayList.isNotEmpty()) {
+            val dataStore: SharedPreferences = this.getSharedPreferences("DataStore", Context.MODE_PRIVATE)
+            val editor = dataStore.edit()
+            val jsonArray = JSONArray(arrayList)
+            editor.putString("Rallies", jsonArray.toString()).apply()
+        }
+    }
+
+    private fun loadRallyArrayList(): ArrayList<String>{
+        val dataStore: SharedPreferences = this.getSharedPreferences("DataStore", Context.MODE_PRIVATE)
+        val jsonArray = JSONArray(dataStore.getString("Rallies", "[]"))
+        val arrayList = ArrayList<String>()
+        for (i in 0 until jsonArray.length()) {
+            arrayList.add(jsonArray.get(i) as String)
+        }
         return arrayList
     }
 
@@ -199,20 +253,22 @@ class MainActivity : AppCompatActivity() {
 //        pager.adapter = CustomPagerAdapter(supportFragmentManager)
 //        tab_layout.setupWithViewPager(pager)
     }
-    fun initRecyclerView(){
+    private fun initRecyclerView(){
         main_activity_container.setHasFixedSize(true)
         main_activity_container.layoutManager = LinearLayoutManager(this)
 
         // sharedpreference　データ消去
-//        val dataStore: SharedPreferences = getSharedPreferences("DataStore", Context.MODE_PRIVATE)
-//        dataStore.edit().clear().apply()
+        val dataStore: SharedPreferences = getSharedPreferences("DataStore", Context.MODE_PRIVATE)
+        dataStore.edit().clear().apply()
 
         //チェックイン履歴読み込み
         historyList = loadArrayList("history")
 
         val states = arrayListOf<RecyclerState>()
         // ヘッダ追加
-        val headerState = RecyclerState(RecyclerType.HEADER, historyList.size)
+
+        Log.d("init", "init header")
+        val headerState = RecyclerState(RecyclerType.HEADER, historyList.size, totalCheckPointSize)
         states.add(headerState)
         // RecycleView動作確認用
 //        var secCounter = 0
@@ -236,5 +292,28 @@ class MainActivity : AppCompatActivity() {
 
         mAdapter = MarkerAdapter(this, states)
         main_activity_container.adapter = mAdapter
+    }
+
+    private fun addRally(id: String) {
+        if (rallyArrayList.contains(id)) return
+        val db = FirebaseFirestore.getInstance()
+        val docRef = db.collection("rallies").document(id)
+        docRef.get().addOnSuccessListener{ document ->
+            val rallyTitle = document.get("title") as String
+            val rallyDescription = document.get("description") as String
+            val rallyAuthor = document.get("author") as String
+            spinnerItems.add(rallyTitle)
+
+            rallyArrayList.add(id)
+            saveRallyArrayList(rallyArrayList)
+
+            Snackbar.make(addRallyButton, "ラリー追加", Snackbar.LENGTH_SHORT).show()
+        }.addOnFailureListener { exception ->
+            Log.d("Firestore", "get failed with ", exception)
+        }
+        docRef.collection("checkpoints").get().addOnSuccessListener {
+            totalCheckPointSize += it.size()
+            mAdapter.updateToRecyclerView(0, RecyclerState(RecyclerType.HEADER, historyList.size, totalCheckPointSize))
+        }
     }
 }
