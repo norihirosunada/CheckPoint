@@ -49,11 +49,11 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
-        val tabFragments = arrayListOf(
-            TabFragment::class.java,
-            TabFragment::class.java,
-            TabFragment::class.java
-        )
+//        val tabFragments = arrayListOf(
+//            TabFragment::class.java,
+//            TabFragment::class.java,
+//            TabFragment::class.java
+//        )
 
 //        initTablayout()
         initRecyclerView()
@@ -69,8 +69,8 @@ class MainActivity : AppCompatActivity() {
         spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener{
             //　アイテムが選択された時
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val spinnerParent = parent as Spinner
-                val item = spinnerParent.selectedItem as String
+//                val spinnerParent = parent as Spinner
+//                val item = spinnerParent.selectedItem as String
                 //textView.text = item
             }
             //　アイテムが選択されなかった
@@ -91,7 +91,7 @@ class MainActivity : AppCompatActivity() {
             //テキスト入力欄を挿入
             builder.setView(editText)
             //決定ボタンを設置
-            builder.setPositiveButton(getString(R.string.label_addRallyDialog_PositiveButton)){ dialog, which ->
+            builder.setPositiveButton(getString(R.string.label_addRallyDialog_PositiveButton)){ _, _ ->
                 Log.d("AlertDialog", "text => ${editText.text}")
                 // ラリー追加
                 addRally(editText.text.toString())
@@ -104,8 +104,8 @@ class MainActivity : AppCompatActivity() {
         fab.setOnClickListener {
             val intent = Intent(this, MapsActivity::class.java)
             val array: ArrayList<String> = arrayListOf()
-            historyList.forEachIndexed { index, it ->
-                array.add(it.checkPoint.title)
+            historyList.forEach { checkPointRecord ->
+                array.add(checkPointRecord.checkPoint.title)
             }
             val rallyArray: Array<String> = rallyArrayList.toTypedArray()
             intent.putExtra("rallyArray", rallyArray)
@@ -139,8 +139,8 @@ class MainActivity : AppCompatActivity() {
             val docRef = db.collection("rallies").document(id)
             docRef.get().addOnSuccessListener { document ->
                 val rallyTitle = document.get("title") as String
-                val rallyDescription = document.get("description") as String
-                val rallyAuthor = document.get("author") as String
+//                val rallyDescription = document.get("description") as String
+//                val rallyAuthor = document.get("author") as String
                 spinnerItems.add(rallyTitle)
 
             }.addOnFailureListener { exception ->
@@ -300,8 +300,8 @@ class MainActivity : AppCompatActivity() {
         val docRef = db.collection("rallies").document(id)
         docRef.get().addOnSuccessListener{ document ->
             val rallyTitle = document.get("title") as String
-            val rallyDescription = document.get("description") as String
-            val rallyAuthor = document.get("author") as String
+//            val rallyDescription = document.get("description") as String
+//            val rallyAuthor = document.get("author") as String
             spinnerItems.add(rallyTitle)
 
             rallyArrayList.add(id)
