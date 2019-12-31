@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">名古屋イルミネーション</string>
+    <string name="app_name">ウォークラリー</string>
     <string name="action_about">About</string>
     <string name="title_activity_maps">チェックイン</string>
     <string name="latitude_label">Latitude</string>
